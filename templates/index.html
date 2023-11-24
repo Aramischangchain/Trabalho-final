@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebML</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Sistema de Machine Learning com Flask</h1>
+    </header>
+    
+    <div class="content">
+        <form method="post" action="/">
+            <label for="classifier">Escolha o Classificador:</label>
+            <select name="classifier" id="classifier">
+                {% for classifier in classifiers %}
+                    <option value="{{ classifier }}">{{ classifier }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Campos para os parâmetros específicos de cada classificador -->
+            {% for classifier, params in classifier_params.items() %}
+                <div id="{{ classifier }}_params" class="params" style="display: none;">
+                    {% for param in params %}
+                        <label for="{{ classifier }}_{{ param }}">{{ param }} ({{ classifier }}):</label>
+                        {% if param == 'leaf_size' %}
+                            <input type="number" name="{{ classifier }}_{{ param }}" min="1">
+                        {% elif param == 'algorithm' %}
+                            <select name="{{ classifier }}_{{ param }}">
+                                <option value="auto">auto</option>
+                                <option value="ball_tree">ball_tree</option>
+                                <option value="kd_tree">kd_tree</option>
+                                <option value="brute">brute</option>
+                            </select>
+                        {% else %}
+                            <input type="text" name="{{ classifier }}_{{ param }}">
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            
+            <button type="submit">Executar</button>
+            <button type="reset">Limpar</button>
+        </form>
+
+        {% if confusion_matrix_img %}
+            <div class="results">
+                <h2>Resultados:</h2>
+                <p>Acurácia: {{ classification_results.accuracy }}</p>
+                <p>Média macro-F1: {{ classification_results['macro-avg'] }}</p>
+                
+                <img src="data:image/png;base64,{{ confusion_matrix_img }}" alt="Matriz de Confusão">
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.getElementById('classifier').addEventListener('change', function() {
+            var selectedClassifier = this.value;
+            var paramDivs = document.querySelectorAll('.params');
+
+            paramDivs.forEach(function(div) {
+                div.style.display = 'none';
+            });
+
+            var selectedParamDiv = document.getElementById(selectedClassifier + '_params');
+            if (selectedParamDiv) {
+                selectedParamDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
